@@ -1,0 +1,58 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "mysql"
+  url      = env("DATABASE_URL")
+}
+
+model gestor {
+  idgestor           Int                  @id @default(autoincrement())
+  name               String?              @db.VarChar(45)
+  lastname           String?              @db.VarChar(45)
+  email              String               @db.VarChar(45)
+  phone              String?              @db.VarChar(45)
+  active             Boolean?
+  project_has_gestor project_has_gestor[]
+}
+
+model project {
+  idproject          Int                  @id @default(autoincrement())
+  name               String               @db.VarChar(45)
+  description        String               @db.VarChar(45)
+  project_has_gestor project_has_gestor[]
+  task               task[]
+}
+
+model project_has_gestor {
+  idproject Int
+  idgestor  Int
+  gestor    gestor  @relation(fields: [idgestor], references: [idgestor], onDelete: NoAction, onUpdate: NoAction, map: "fk_project_has_gestor_gestor1")
+  project   project @relation(fields: [idproject], references: [idproject], onDelete: NoAction, onUpdate: NoAction, map: "fk_project_has_gestor_project1")
+
+  @@id([idproject, idgestor])
+  @@index([idgestor], map: "fk_project_has_gestor_gestor1_idx")
+  @@index([idproject], map: "fk_project_has_gestor_project1_idx")
+}
+
+model task {
+  idtask                  Int        @id @default(autoincrement())
+  name                    String?    @db.VarChar(45)
+  description             String?    @db.VarChar(255)
+  task_state_idtask_state Int        @map("task-state_idtask-state")
+  project_idproject       Int
+  project                 project    @relation(fields: [project_idproject], references: [idproject], onDelete: NoAction, onUpdate: NoAction, map: "fk_task_project1")
+  task_state              task_state @relation(fields: [task_state_idtask_state], references: [idtask_state], onDelete: NoAction, onUpdate: NoAction, map: "fk_task_task-state1")
+
+  @@index([project_idproject], map: "fk_task_project1_idx")
+  @@index([task_state_idtask_state], map: "fk_task_task-state1_idx")
+}
+
+model task_state {
+  idtask_state Int     @id @map("idtask-state")
+  name         String? @db.VarChar(45)
+  task         task[]
+
+  @@map("task-state")
+}
